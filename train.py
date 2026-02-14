@@ -6,8 +6,17 @@ import warnings
 warnings.filterwarnings('ignore', category=DeprecationWarning)
 
 import os
-os.environ['MKL_SERVICE_FORCE_INTEL'] = '1'
-os.environ['MUJOCO_GL'] = 'egl'
+import platform
+# MKL_SERVICE_FORCE_INTEL is only valid on Intel CPUs on Linux
+if platform.system() == 'Linux':
+    os.environ['MKL_SERVICE_FORCE_INTEL'] = '1'
+# Use glfw for rendering on Windows/macOS; egl on Linux headless servers
+if platform.system() == 'Windows':
+    os.environ['MUJOCO_GL'] = 'glfw'
+elif platform.system() == 'Darwin':
+    os.environ['MUJOCO_GL'] = 'glfw'
+else:
+    os.environ['MUJOCO_GL'] = os.environ.get('MUJOCO_GL', 'egl')
 
 from pathlib import Path
 
@@ -204,7 +213,7 @@ class Workspace:
             self.__dict__[k] = v
 
 
-@hydra.main(config_path='cfgs', config_name='config')
+@hydra.main(config_path='cfgs', config_name='config', version_base='1.1')
 def main(cfg):
     from train import Workspace as W
     root_dir = Path.cwd()

@@ -1,7 +1,6 @@
 defaults:
   - _self_
   - task@_global_: quadruped_walk
-  - override hydra/launcher: submitit_local
 
 # task settings
 frame_stack: 3
@@ -16,13 +15,15 @@ num_eval_episodes: 10
 save_snapshot: false
 # replay buffer
 replay_buffer_size: 1000000
-replay_buffer_num_workers: 4
+# Windows: set to 0 to avoid multiprocessing issues; Linux/macOS can use 4
+replay_buffer_num_workers: 0
 nstep: 3
 batch_size: 256
 # misc
 seed: 1
+# Use 'cuda' if a GPU is available, otherwise 'cpu'
 device: cuda
-save_video: true
+save_video: false
 save_train_video: false
 use_tb: true
 # experiment
@@ -50,13 +51,5 @@ hydra:
   run:
     dir: ./exp_local/${now:%Y.%m.%d}/${now:%H%M%S}_${hydra.job.override_dirname}
   sweep:
-    dir: ./exp/${now:%Y.%m.%d}/${now:%H%M}_${agent_cfg.experiment}
+    dir: ./exp/${now:%Y.%m.%d}/${now:%H%M}_${experiment}
     subdir: ${hydra.job.num}
-  launcher:
-    timeout_min: 4300
-    cpus_per_task: 10
-    gpus_per_node: 1
-    tasks_per_node: 1
-    mem_gb: 160
-    nodes: 1
-    submitit_folder: ./exp/${now:%Y.%m.%d}/${now:%H%M%S}_${agent_cfg.experiment}/.slurm
